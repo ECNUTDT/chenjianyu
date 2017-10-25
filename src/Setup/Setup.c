@@ -19,6 +19,8 @@ int main(int argc, char **argv) {
   // a temp element from G
   element_t temp;
 
+  //a element from GT
+  element_t A;
   //read a.param file when executing Executable file
   pbc_demo_pairing_init(pairing, argc, argv);
 
@@ -34,6 +36,7 @@ int main(int argc, char **argv) {
   element_init_G1(g1,pairing);
   element_init_G1(g2,pairing);
   element_init_Zr(temp,pairing);
+  element_init_GT(A,pairing);
 
   //generate some random necessary variables
   element_random(y);
@@ -68,14 +71,10 @@ int main(int argc, char **argv) {
     element_init_G1(arrM[i],pairing);
   	element_random(temp);
   	element_pow_zn(arrM[i],g,temp);
-    element_printf("\"v-%d\":\"%B\"",i+1,arrM[i]);
-    if(i != 9){
-      printf(",\n");
-    }
-    else{
-      printf("\n");
-    }
+    element_printf("\"v-%d\":\"%B\",\n",i+1,arrM[i]);
   }
+  pairing_apply(A,g1,g2,pairing);
+  element_printf("\"A\":\"%B\"\n",A);
   //end writing data to file PP 
   printf("}\n");
   fclose(stdout);
@@ -92,6 +91,7 @@ int main(int argc, char **argv) {
   fclose(stdout);
 
   //memory management
+  element_clear(A);
   element_clear(v);
   element_clear(y);
   element_clear(z);
