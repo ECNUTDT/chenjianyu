@@ -1,7 +1,9 @@
 #include "/usr/local/include/pbc/pbc.h"
 #include "/usr/local/include/pbc/pbc_test.h"
-#include <malloc.h>
 #include <stdio.h>
+
+const int N = 21;
+const int M = 10;
 
 /**
 compile program:  gcc -o test Setup.c -L. -lpbc -lgmp
@@ -19,14 +21,11 @@ int main(int argc, char **argv) {
   // a temp element from G
   element_t temp;
 
-  //a element from GT
-  element_t A;
   //read a.param file when executing Executable file
   pbc_demo_pairing_init(pairing, argc, argv);
 
-  //assume n=21,m=10
-  element_t arrN[21];
-  element_t arrM[10];
+  element_t arrN[N];
+  element_t arrM[M];
 
   //initilize variables
   element_init_G1(v,pairing);
@@ -36,7 +35,6 @@ int main(int argc, char **argv) {
   element_init_G1(g1,pairing);
   element_init_G1(g2,pairing);
   element_init_Zr(temp,pairing);
-  element_init_GT(A,pairing);
 
   //generate some random necessary variables
   element_random(y);
@@ -49,7 +47,7 @@ int main(int argc, char **argv) {
 
   //create file PP to keep the variables 
   if(freopen("../../data/setup_data/PP","w",stdout)==NULL){
-    fprintf(stderr, "error\n");
+    fprintf(stderr, "error1\n");
   }
 
   printf("{\n");
@@ -57,7 +55,7 @@ int main(int argc, char **argv) {
   element_printf("\"g2\":\"%B\",\n",g2);
 
   //generate elements from G
-  for(int i = 0; i <= 20; ++i){
+  for(int i = 0; i <= N - 1; ++i){
   	element_init_G1(arrN[i],pairing);
   	element_random(arrN[i]);
     element_printf("\"t-%d\":\"%B\",\n",i+1,arrN[i]);
@@ -67,21 +65,25 @@ int main(int argc, char **argv) {
 
   element_printf("\"v'\":\"%B\",\n",v);
   //generate elements from Zr
-  for(int i = 0; i < 10; ++i){
+  for(int i = 0; i < M; ++i){
     element_init_G1(arrM[i],pairing);
   	element_random(temp);
   	element_pow_zn(arrM[i],g,temp);
-    element_printf("\"v-%d\":\"%B\",\n",i+1,arrM[i]);
+    element_printf("\"v-%d\":\"%B\"",i+1,arrM[i]);
+    if(i != 9){
+      printf(",\n");
+    }
+    else{
+      printf("\n");
+    }
   }
-  pairing_apply(A,g1,g2,pairing);
-  element_printf("\"A\":\"%B\"\n",A);
   //end writing data to file PP 
   printf("}\n");
   fclose(stdout);
 
   //create file MK to keep the variables 
   if(freopen("../../data/setup_data/MK","w",stdout)==NULL){
-    fprintf(stderr, "error\n");
+    fprintf(stderr, "error2\n");
   }
   printf("{\n");
   element_printf("\"y\":\"%B\"\n",y);
@@ -90,8 +92,15 @@ int main(int argc, char **argv) {
 
   fclose(stdout);
 
+
+  if(freopen("../../data/config/config","w",stdout)==NULL){
+    fprintf(stderr, "error3\n");
+  }
+
+  printf("{\n\"N\":\"%d\",\n\"M\":\"%d\"\n}",N,M);
+  fclose(stdout);
+
   //memory management
-  element_clear(A);
   element_clear(v);
   element_clear(y);
   element_clear(z);
