@@ -133,6 +133,8 @@ int main(int argc, char **argv) {
   os1.close();  
 
 
+
+
   //memory management
   element_clear(v);
   element_clear(y);
