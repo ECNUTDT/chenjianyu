@@ -81,8 +81,7 @@ int main(int argc, char **argv) {
 
   os.open("../../data/setup_data/PP");  
 
-
-
+  root["g"] = Json::Value((char*)transfer(g));  
   root["g1"] = Json::Value((char*)transfer(g1));  
   root["g2"] = Json::Value((char*)transfer(g2));  
   //generate elements from G
