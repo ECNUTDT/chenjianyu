@@ -279,6 +279,17 @@ int main(int argc, char **argv){
 		element_init_G1(arrTx[i],pairing);
 		calculateTx(omiga[i],pairing,arrTx,arrN);
 	}
+
+	//write Tx to file
+	for(int i = 0; i < N-1; ++i){
+		string index = "";
+	    stringstream st;
+	    st << (i+1);
+	    st >> index;
+	    index ="T-" + index;
+	    root[index] = Json::Value((char*)transfer(arrTx[i]));  
+	}
+
 	//Di
 	element_t *arrDi = new element_t[N-1];
 	for(int i = 0; i < N-1; ++i){
@@ -320,6 +331,25 @@ int main(int argc, char **argv){
 
   	os << sw.write(root);  
   	os.close();  
+
+  	 //create file omiga to keep the variables 
+  	if(freopen("../../data/extract_data/omiga","w",stdout)==NULL){
+    	fprintf(stderr, "error2\n");
+  	}
+  	printf("{\n");
+  	for(int i = 0; i < N - 1; ++i){
+  	  	element_printf("\"O-%d\":\"%B\"",i+1,omiga[i]);
+		if(i != N-2){
+  			element_printf(",\n");
+  		}
+  		else{
+  			element_printf("\n");
+  		}
+  	}
+  	//end writing data to file MK 
+  	printf("}\n");
+
+  	fclose(stdout);
 
 	delete []arrdi;
 	delete []arrDi;
