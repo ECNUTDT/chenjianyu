@@ -349,6 +349,23 @@ int main(int argc, char **argv){
   	//end writing data to file MK 
   	printf("}\n");
 
+  	//-----------Second----------------
+  	//write Qx to file
+  	if(freopen("../../data/extract_data/Qx","w",stdout)==NULL){
+    	fprintf(stderr, "error\n");
+  	}
+  	printf("{\n");
+  	for(int i = 0; i < N - 1; ++i){
+  	  	element_printf("\"Q-%d\":\"%B\"",i+1,arrQx[i]);
+		if(i != N-2){
+  			element_printf(",\n");
+  		}
+  		else{
+  			element_printf("\n");
+  		}
+  	}
+  	//end writing data to file MK 
+  	printf("}\n");
   	fclose(stdout);
 
 	delete []arrdi;

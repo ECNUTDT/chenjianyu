@@ -22,6 +22,7 @@ const string configPath = "../../data/config/config";
 const string PPPath = "../../data/setup_data/PP";
 const string ExtractDataPath = "../../data/extract_data/data";
 const string OmigaDataPath = "../../data/extract_data/omiga";
+const string QxDataPath = "../../data/extract_data/Qx";
 const string SignDataPath = "../../data/sign_data/data";
 
 const int d = 9;
@@ -215,6 +216,28 @@ void getOmigaValue(Json::Value value,pairing_t pairing,element_t *omiga){
     }
 }
 
+void getQxValue(Json::Value value,pairing_t pairing,element_t *arrQx){
+	Json::Value::Members members;
+	members = value.getMemberNames();
+	for (Json::Value::Members::iterator iterMember = members.begin(); iterMember != members.end(); iterMember++){  
+    	string strKey = *iterMember;
+    	int pos = strKey.find("-");
+    	string type = strKey.substr(0,pos);
+    	if(type == "Q"){
+			string str = value[strKey.c_str()].asString(); 
+			string num = strKey.substr(pos+1,strKey.size());
+			stringstream ss;
+			ss << num;
+			int index;
+			ss >> index;
+			element_init_Zr(arrQx[index-1],pairing);
+			mpz_t mpz_element;
+			mpz_init_set_str(mpz_element,str.c_str(),10);   
+			element_set_mpz(arrQx[index-1],mpz_element); 	
+    	}
+    }
+}
+
 string readFile(string path){
 	stringstream ss;
 	fstream readPathData(path.c_str());
@@ -234,6 +257,7 @@ int main(int argc, char **argv){
 	string PPData = readFile(PPPath);
 	string extractData = readFile(ExtractDataPath);
 	string omigaData = readFile(OmigaDataPath);
+	string qxData = readFile(QxDataPath);
 
 	pairing_t pairing;
 	pbc_demo_pairing_init(pairing, argc, argv);
@@ -243,12 +267,16 @@ int main(int argc, char **argv){
 	Json::Reader reader2;
 	Json::Reader reader3;
 	Json::Reader reader4;
+	Json::Reader reader5;
+
 
 	Json::Value value;
 	Json::Value value1;
 	Json::Value value2;
 	Json::Value value3;
 	Json::Value value4;
+	Json::Value value5;
+
 
 	//=============read data from file end===================
 	if(!reader.parse(configData,value)){
@@ -289,6 +317,14 @@ int main(int argc, char **argv){
 	}
 	getOmigaValue(value4,pairing,omiga);
 
+
+	element_t *arrQx = new element_t[N-1];
+	if(!reader5.parse(qxData,value5)){
+		cout << "cannot read qxData file!\n";
+		return 0;
+	}
+	getQxValue(value5,pairing,arrQx);
+
 	//=============read data from file end===================
 
 
@@ -308,34 +344,81 @@ int main(int argc, char **argv){
 	//=============get PartThreePartTwo===================
 
 
+	// //=============first===================
+	// element_printf("-----------------------------\n");
+	// element_t outMul;
+	// element_init_GT(outMul,pairing);
+	// element_set1(outMul);
+	// for(int i = 0; i < N-1; ++i){
+	// 	element_t result;
+	// 	element_init_G1(result,pairing);
+
+	// 	element_t e1;
+	// 	element_init_GT(e1,pairing);
+	// 	element_t e2;
+	// 	element_init_GT(e2,pairing);
+	// 	element_t e3;
+	// 	element_init_GT(e3,pairing);
+	// 	pairing_apply(e1,firstPart[i],g,pairing);
+	// 	pairing_apply(e2,secondPart[i],arrTx[i],pairing);
+	// 	pairing_apply(e3,thirdPart[i],fixedValue,pairing);
+
+	// 	element_t mulTemp1;
+	// 	element_init_GT(mulTemp1,pairing);
+	// 	element_mul(mulTemp1,e1,e2);
+	// 	element_mul(mulTemp1,mulTemp1,e3);
+
+
+	// 	//calculate delta i,s(0)
+	// 	element_t innerMul;
+	// 	element_init_Zr(innerMul,pairing);
+	// 	element_set1(innerMul);
+	// 	for(int j = 0; j < N - 1; ++j){
+	// 		if(i == j){
+	// 			continue;
+	// 		}
+	// 		element_t numerator;
+	// 		element_t denominator;
+	// 		element_t quotient;
+	// 		element_init_Zr(numerator,pairing);
+	// 		element_init_Zr(denominator,pairing);
+	// 		element_init_Zr(quotient,pairing);
+	// 		element_neg(numerator,omiga[j]);
+	// 		element_sub(denominator,omiga[i],omiga[j]);
+	// 		element_div(quotient,numerator,denominator);
+	// 		element_mul(innerMul,innerMul,quotient);
+	// 	}	
+	// 	element_t innerPow;
+	// 	element_init_GT(innerPow,pairing);
+	// 	element_pow_zn(innerPow,mulTemp1,innerMul);
+	// 	element_mul(outMul,outMul,innerPow);
+	// }
+	// element_printf("outMul = %B\n",outMul);
+
+	// element_t A;
+	// element_init_GT(A,pairing);
+	// pairing_apply(A,g1,g2,pairing);
+
+	// element_printf("A = %B\n",A);
+
+	// element_printf("-----------------------------\n");
+	// //=============first===================
+
+
+
+
+
+	//=============second===================
 	element_t outMul;
 	element_init_GT(outMul,pairing);
 	element_set1(outMul);
-	for(int i = 0; i < N-1; ++i){
-		element_t result;
-		element_init_G1(result,pairing);
-
-		element_t e1;
-		element_init_GT(e1,pairing);
-		element_t e2;
-		element_init_GT(e2,pairing);
-		element_t e3;
-		element_init_GT(e3,pairing);
-		pairing_apply(e1,firstPart[i],g,pairing);
-		pairing_apply(e2,secondPart[i],arrTx[i],pairing);
-		pairing_apply(e3,thirdPart[i],fixedValue,pairing);
-
-		element_t mulTemp1;
-		element_init_GT(mulTemp1,pairing);
-		element_mul(mulTemp1,e1,e2);
-		element_mul(mulTemp1,mulTemp1,e3);
-
-
-		//calculate delta i,s(0)
+	//change N-2
+	for (int i = 0; i < N - 2; ++i){
 		element_t innerMul;
 		element_init_Zr(innerMul,pairing);
 		element_set1(innerMul);
-		for(int j = 0; j < N - 1; ++j){
+		//change N-2
+		for(int j = 0; j < N - 2; ++j){
 			if(i == j){
 				continue;
 			}
@@ -350,23 +433,32 @@ int main(int argc, char **argv){
 			element_div(quotient,numerator,denominator);
 			element_mul(innerMul,innerMul,quotient);
 		}	
-		element_t innerPow;
-		element_init_GT(innerPow,pairing);
-		element_pow_zn(innerPow,mulTemp1,innerMul);
-		element_mul(outMul,outMul,innerPow);
-	}
-	element_printf("outMul = %B\n",outMul);
 
+		element_t GTTemp;
+		element_init_GT(GTTemp,pairing);
+		element_t g2qi;
+		element_init_G1(g2qi,pairing);
+		element_pow_zn(g2qi,g2,arrQx[i]);
+		pairing_apply(GTTemp,g2qi,g,pairing);
+		element_t vari;
+		element_init_GT(vari,pairing);
+		element_pow_zn(vari,GTTemp,innerMul);
+		element_mul(outMul,outMul,vari);
+	}
+
+	element_printf("outMul = %B\n",outMul);
 	element_t A;
 	element_init_GT(A,pairing);
 	pairing_apply(A,g1,g2,pairing);
-
 	element_printf("A = %B\n",A);
+
+	//=============second===================
 
 
 	//useless
 	delete []arrN;
 	
+	delete []arrQx; 
 	delete []omiga;
 	delete []arrM;
 	delete []firstPart;
